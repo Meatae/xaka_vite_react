@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import styled from 'styled-components';
 import Draggable from 'react-draggable';
 import { gsap } from 'gsap';
@@ -10,19 +10,14 @@ const Container = styled.div`
   margin: 0;
   padding: 0;
   background: #f5f5f5;
+  background-image: radial-gradient(circle, rgba(0, 123, 255, 0.3) 1px, transparent 1px);
+  background-size: 20px 20px;
   overflow: hidden;
   font-family: 'Futura', sans-serif;
   color: #333333;
   position: relative;
   width: 100vw;
   height: 100vh;
-`;
-
-const Canvas = styled.canvas`
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
 `;
 
 const Title = styled.div`
@@ -66,8 +61,26 @@ const InfoBlock = styled.div`
   z-index: 3;
 `;
 
+interface MouseCoordsProps {
+  top: number;
+  left: number;
+}
+
+const MouseCoords = styled.div<MouseCoordsProps>`
+  position: fixed;
+  top: ${props => props.top}px;
+  left: ${props => props.left}px;
+  z-index: 2;
+  color: #007bff;
+  font-size: 12px;
+  font-family: 'Futura', sans-serif;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2px 4px;
+  border-radius: 4px;
+`;
+
 const CyberpunkPage: React.FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [info, setInfo] = useState({
     time: '',
@@ -77,65 +90,16 @@ const CyberpunkPage: React.FC = () => {
   });
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
     const handleMouseMove = (e: MouseEvent) => {
       setMousePos({ x: e.clientX, y: e.clientY });
     };
 
     window.addEventListener('mousemove', handleMouseMove);
 
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      ctx.strokeStyle = 'rgba(0, 123, 255, 0.3)';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([5, 5]);
-
-      const v1 = canvas.width * 0.3;
-      const v2 = canvas.width * 0.7;
-      ctx.beginPath();
-      ctx.moveTo(v1, 0);
-      ctx.lineTo(v1, canvas.height);
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(v2, 0);
-      ctx.lineTo(v2, canvas.height);
-      ctx.stroke();
-
-      const h1 = canvas.height * 0.4;
-      const h2 = canvas.height * 0.8;
-      ctx.beginPath();
-      ctx.moveTo(0, h1);
-      ctx.lineTo(canvas.width, h1);
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(0, h2);
-      ctx.lineTo(canvas.width, h2);
-      ctx.stroke();
-
-      ctx.fillStyle = '#007bff';
-      ctx.font = '12px Futura';
-      ctx.fillText(`x: ${mousePos.x}`, mousePos.x + 20, mousePos.y + 20);
-      ctx.fillText(`y: ${mousePos.y}`, mousePos.x + 20, mousePos.y + 34);
-
-      requestAnimationFrame(draw);
-    };
-
-    draw();
-
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [mousePos]);
+  }, []);
 
   useEffect(() => {
     const updateInfo = () => {
@@ -160,10 +124,13 @@ const CyberpunkPage: React.FC = () => {
 
   return (
     <Container>
-      <Canvas ref={canvasRef} />
       <Suspense fallback={<div>Loading...</div>}>
         <ThreeJSComponent />
       </Suspense>
+      <MouseCoords top={mousePos.y + 20} left={mousePos.x + 20}>
+        x: {mousePos.x}<br />
+        y: {mousePos.y}
+      </MouseCoords>
       <Title className="title">
         <h1>XAPA® '26</h1>
         <p>Creative Development<br />& Experience Designer</p>
